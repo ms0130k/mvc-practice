@@ -4,20 +4,30 @@ import org.example.mvc.controller.HttpMethod;
 import org.junit.jupiter.api.Test;
 import org.reflections.Reflections;
 
+import javax.sound.midi.Soundbank;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AnnotationTest {
     @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
     @interface ControllerTest {
         String name() default "";
     }
 
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
     @interface RequestMappingTest {
         String value() default "";
 
@@ -27,7 +37,7 @@ public class AnnotationTest {
     @ControllerTest(name = "annotatedClass")
     class TestAnnotated {
         @RequestMappingTest(value = "/go", method = HttpMethod.GET)
-        void method() {
+        void 고고고() {
 
         }
     }
@@ -40,15 +50,18 @@ public class AnnotationTest {
      */
     @Test
     void 애너테이션으로_클래스와_포함_메서드_찾기() {
-//        Reflections reflections = new Reflections(getClass().getPackageName());
-//        Set<Class<?>> typesAnnotatedWith = reflections.getTypesAnnotatedWith(ControllerTest.class);
-//        typesAnnotatedWith.stream()
-//                .filter(clazz -> Arrays.stream(Arrays.stream(clazz.getDeclaredMethods())
-//                        .filter())
-//                ) // [[method1, method2], [method3, method4]]
+        Reflections reflections = new Reflections(getClass().getPackageName());
+        List<Method> methodList = new ArrayList<>();
+        Set<Class<?>> typesAnnotatedWith = reflections.getTypesAnnotatedWith(ControllerTest.class);
 
-        //        Map<Object, Object> map = new HashMap<>();
-//        map.put(null, 1);
-//        assertTrue(null instanceof Object);
+        typesAnnotatedWith.stream()
+                .map(Class::getDeclaredMethods)
+                .forEach(methods -> Arrays.stream(methods)
+                        .filter(method -> method.isAnnotationPresent(RequestMappingTest.class))
+                        .forEach(method -> methodList.add(method)));
+        assertThat(methodList.size()).isEqualTo(1);
+        RequestMappingTest annotation = methodList.get(0).getAnnotation(RequestMappingTest.class);
+        assertThat(annotation.method()).contains(HttpMethod.GET);
+        assertThat(annotation.value()).isEqualTo("/go");
     }
 }

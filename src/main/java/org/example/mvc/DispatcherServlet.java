@@ -29,18 +29,16 @@ public class DispatcherServlet extends HttpServlet {
     public void init() throws ServletException {
         RequestHandlerMapping rhm = new RequestHandlerMapping();
         rhm.init();
-        AnnotationMappingHandler amh = new AnnotationMappingHandler("?????");
+        AnnotationHandlerMapping amh = new AnnotationHandlerMapping("?????");
         amh.init();
         handlerMappings = List.of(rhm, amh);
-//        handlerMappings.init();
         viewResolvers = Collections.singletonList(new JspViewResolver());
-        handlerAdapters=List.of(new SimpleControllerHandlerAdapter());
+        handlerAdapters=List.of(new SimpleControllerHandlerAdapter(), new AnnotationHandlerAdapter());
     }
 
     @Override
     protected void service(final HttpServletRequest req, final HttpServletResponse res) throws ServletException, IOException {
         Object handler = handlerMappings.stream()
-//        findHandler(new HandlerKey(HttpMethod.valueOf(req.getMethod()), req.getRequestURI()));
                 .filter(hm -> hm.findHandler(new HandlerKey(HttpMethod.valueOf(req.getMethod()), req.getRequestURI())) != null)
                 .findFirst()
                 .orElseThrow(() -> new ServletException(""));
