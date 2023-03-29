@@ -1,2 +1,5 @@
-package org.example.mvc.constant;public class HttpMethod {
+package org.example.mvc.constant;
+
+public enum HttpMethod {
+    GET, POST
 }
